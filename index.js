@@ -1,57 +1,66 @@
-import Axios from 'axios';
-import fs from 'fs';
-// import * as cheerio from 'cheerio';
-import fetch from 'node-fetch';
+import fs from 'node:fs';
+import client from 'node:https';
+// import path from 'node:path';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
 
 const url = 'https://memegen-link-examples-upleveled.netlify.app/';
+const filePath = './memes';
 
-const response = await fetch(url);
-const body = await response.text();
-let htmlContent = '';
-/*
-1.This code is using a regular expression, to match URLs within a string.
-  The expression is passed to the `match()` method of the `body` string, which returns
-  an array of matches, if any.
-2.We are using the `gi` flag, which stands for 'global' and 'case-sensitive', this means
-  that the `match()` method will return all matches of the expression in the string, regardless
-  of case and without stop after first match.
-  */
-
-const expression =
-  /(https?:\/\/(?:www\.|(?!www))[^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/gi;
-let matches = body.match(expression);
-for (let match in matches) {
-  // We can use the spread operator and assign the result of the array
-  htmlContent = [...matches];
+// Making directory which is empty
+try {
+  if (fs.existsSync(filePath)) {
+    console.log('Directory already exists.');
+  } else {
+    fs.mkdir(filePath, { recursive: true }, (err) => {
+      if (err) throw err;
+      console.log('Directory successfully created!');
+    });
+  }
+} catch (e) {
+  console.log('An error occurred!');
 }
 
-function apiUrl(urlA) {
-  return urlA.includes('jpg?width');
+//  Async function which scrapes the data
+async function scrapeData() {
+  try {
+    // Fetch HTML of the page we want to scrape
+    const { data } = await axios.get(url);
+    // Load HTML we fetched in the previous line
+    const htmlContent = cheerio.load(data);
+    // Select all the list items in plainlist class
+    const imgItems = htmlContent('div a img');
+    // Stores data for all countries
+    const linkArray = [];
+    // Use .each method to loop through the li we selected
+    imgItems.each((idx, el) => {
+      if (idx <= 9) {
+        const link = htmlContent(el).attr('src');
+        linkArray.push(link);
+      }
+
+      for (let i = 0; i < linkArray.length; i++) {
+        client.get(linkArray[i], (res) => {
+          const dir = `./memes/0${i + 1}.jpg`;
+          res.pipe(fs.createWriteStream(dir));
+        });
+      }
+    });
+    // Logs linkArray to the console
+    console.dir(linkArray);
+  } catch (err) {
+    console.error(err);
+  }
 }
-const filteredHtml = htmlContent.filter(apiUrl);
+// Invoke the above function
+// await scrapeData();
 
-const firstTenItems = filteredHtml.slice(0, 10);
-console.log(firstTenItems);
-
-// async function downloadImage(url, filepath) {
-//   const response = await Axios({
-//     url,
-//     method: 'GET',
-//     responseType: 'stream',
+// Removing directory which is not empty!
+// setTimeout(() => {
+//   fs.rmSync(filePath, { recursive: true, force: true }, (err) => {
+//     if (err) {
+//       console.log('error occurred in deleting directory', err);
+//     }
+//     console.log('Directory deleted successfully');
 //   });
-//   return new Promise((resolve, reject) => {
-//     response.data
-//       .pipe(fs.createWriteStream(filepath))
-//       .on('error', reject)
-//       .once('close', () => resolve(filepath));
-//   });
-// }
-
-// downloadImage(
-//   'https://upload.wikimedia.org/wikipedia/en/thumb/7/7d/Lenna_%28test_image%29.png/440px-Lenna_%28test_image%29.png',
-//   'lena.png',
-// )
-//   .then(console.log)
-//   .catch(console.error);
-
-// downloadImage(filteredHtml, '01.png').then(console.log).catch(console.error);
+// }, '10000');
