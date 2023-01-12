@@ -53,7 +53,7 @@ async function scrapeData() {
   }
 }
 // Invoke the above function
-// await scrapeData();
+await scrapeData();
 
 // Removing directory which is not empty!
 // setTimeout(() => {
