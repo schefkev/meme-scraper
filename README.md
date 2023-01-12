@@ -1,4 +1,4 @@
-[![Run on Repl.it](https://replit.com/@schefkev/meme-scraper#memes/03.jpg)]
+[![Run on Repl.it](https://repl.it/badge/github/schefkev/meme-scraper)](https://repl.it/github/schefkev/meme-scraper)
 
 # Node.js Meme Scraper
 
