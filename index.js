@@ -47,8 +47,13 @@ async function scrapeData() {
       // Looping over the linkArray.length
       for (let i = 0; i < linkArray.length; i++) {
         client.get(linkArray[i], (res) => {
-          const dir = `./memes/0${i + 1}.jpg`;
-          res.pipe(fs.createWriteStream(dir));
+          if (i < 9) {
+            const dir = `./memes/0${i + 1}.jpg`;
+            res.pipe(fs.createWriteStream(dir));
+          } else {
+            const dir = `./memes/${i + 1}.jpg`;
+            res.pipe(fs.createWriteStream(dir));
+          }
         });
       }
     });
