@@ -52,6 +52,7 @@ async function scrapeData() {
         });
       }
     });
+    console.log('Download finished');
   } catch (err) {
     console.error(err);
   }
